@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 """
 jumpstart.py
@@ -6,7 +6,7 @@ jumpstart.py
 A script for generating a NAOqi project from a tamplate folder.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 __copyright__ = "Copyright 2015-2016, SBRE"
 __author__ = 'ekroeger'
@@ -29,14 +29,14 @@ OUTPUT = "output"
 
 FILETYPES_TO_REPROCESS = [".xar", ".pml", ".manifest", ".py", ".js", ".json",
                           ".xml", ".html", ".top", ".dlg"]
-                          
+
 
 def rename_in_file(filepath, sourceword, destword):
     sourcere = re.compile(r"\b" + sourceword + r"\b")
     # Does this pattern even occur in this file? (most of the time, it won't)
     with open(filepath) as f:
         if not any(sourcere.search(line) for line in f):
-            return False# We're done here.
+            return False  # We're done here.
     # pattern is in the file, so perform replace operation.
 
     with open(filepath) as f:
@@ -49,6 +49,7 @@ def rename_in_file(filepath, sourceword, destword):
         os.unlink(filepath)
         os.rename(temp_filepath, filepath)
     return True
+
 
 def rename_in_folder(folder, sourceword, destword):
     files = list(os.listdir(folder))
@@ -63,12 +64,13 @@ def rename_in_folder(folder, sourceword, destword):
             extension = os.path.splitext(filename)[-1].lower()
             if extension in FILETYPES_TO_REPROCESS:
                 if rename_in_file(filepath, sourceword, destword):
-                    print "Renamed inside", filename
+                    print("Renamed inside", filename)
         # 2) rename if needed
         if sourceword in filename:
             newfilename = filename.replace(sourceword, destword)
             os.rename(filepath, os.path.join(folder, newfilename))
-            print "Renamed", filename
+            print("Renamed", filename)
+
 
 def generate(sourcename, destname, servicename=None):
     "Generate a folder based on a template, or add to an existing one."
@@ -77,11 +79,11 @@ def generate(sourcename, destname, servicename=None):
     sourcepath = os.path.join(TEMPLATES, sourcename)
     destpath = os.path.join(OUTPUT, destname)
     if not os.path.exists(sourcepath):
-        raise Exception, "Template not found: " + repr(sourcename)
+        raise Exception("Template not found: " + repr(sourcename))
     project_exists = os.path.exists(destpath)
     if project_exists:
         shutil.move(destpath, destpath + "_TEMP")
-        print "Project already exists, only adding new files to it"
+        print("Project already exists, only adding new files to it")
     shutil.copytree(sourcepath, destpath)
     rename_in_folder(destpath, sourcename, destname)
 
@@ -97,16 +99,18 @@ def generate(sourcename, destname, servicename=None):
     if project_exists:
         distutils.dir_util.copy_tree(destpath + "_TEMP", destpath)
         shutil.rmtree(destpath + "_TEMP")
-        print "Done adding to", destname, "from", sourcename, 
+        print("Done adding to", destname, "from", sourcename, end=' ')
     else:
-        print "Done generating", destname, "from", sourcename, 
-    
-    
+        print("Done generating", destname, "from", sourcename, end=' ')
+
+
 def test_run():
     #generate("pythonapp", "mytestapp")
     generate("service-tabletpage", "servicetestapp", "ALSuperDuperService")
 
 # Used for argcomplete
+
+
 class TemplateCompleter(object):
     def __init__(self):
         self.choices = os.listdir("templates")
@@ -119,12 +123,12 @@ def run_with_sysargs():
     import argparse
     parser = argparse.ArgumentParser(description='Generates a project.')
     parser.add_argument('sourcename', type=str,
-                       help='name of source recipe/template').completer = TemplateCompleter()
+                        help='name of source recipe/template').completer = TemplateCompleter()
     parser.add_argument('destname', type=str,
-                       help='name of new project to create')
+                        help='name of new project to create')
     parser.add_argument('servicename', type=str,
-                       help='optional, name of service to create',
-                       nargs='?')
+                        help='optional, name of service to create',
+                        nargs='?')
     if argcomplete:
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
@@ -133,8 +137,8 @@ def run_with_sysargs():
     else:
         generate(args.sourcename, args.destname)
 
+
 if __name__ == "__main__":
-    #test_run()
+    # test_run()
     #rename_in_folder("./output/basicparams/", "basicparams", "volumeslider")
     run_with_sysargs()
-
